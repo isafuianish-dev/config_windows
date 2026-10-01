@@ -1,0 +1,39 @@
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Env / secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# AI tools
+.claude/
+.cursor/
+.aider*
+.windsurf/
+.continue/
+.github/copilot-instructions.md
+
+
+# My notes
+__asnotes/
+__asnote*

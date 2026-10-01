@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windows Dotfiles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f5f6f8;
+    --bg-raised: #ffffff;
+    --bg-sunken: #eceef2;
+    --ink: #171a20;
+    --ink-soft: #565e6c;
+    --ink-faint: #8790a0;
+    --line: #e0e3e9;
+    --line-strong: #c9cdd6;
+    --accent: #a86a1f;
+    --accent-ink: #6b4310;
+    --accent-soft: #f4e6d2;
+    --accent-soft-line: #e5cb9e;
+    --danger: #a4402a;
+    --danger-soft: #f7e2dc;
+    --danger-soft-line: #e6b8a9;
+    --code-bg: #eef0f4;
+    --shadow: 0 1px 2px rgba(23, 26, 32, 0.04), 0 8px 24px rgba(23, 26, 32, 0.05);
+
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #14161b;
+      --bg-raised: #1a1d24;
+      --bg-sunken: #101215;
+      --ink: #e9eaee;
+      --ink-soft: #a4abb8;
+      --ink-faint: #6b7280;
+      --line: #2a2e37;
+      --line-strong: #3a3f4b;
+      --accent: #e0a552;
+      --accent-ink: #f4cf94;
+      --accent-soft: #34281a;
+      --accent-soft-line: #4a3a24;
+      --danger: #e08a70;
+      --danger-soft: #3a251f;
+      --danger-soft-line: #55362c;
+      --code-bg: #1e2128;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #14161b;
+    --bg-raised: #1a1d24;
+    --bg-sunken: #101215;
+    --ink: #e9eaee;
+    --ink-soft: #a4abb8;
+    --ink-faint: #6b7280;
+    --line: #2a2e37;
+    --line-strong: #3a3f4b;
+    --accent: #e0a552;
+    --accent-ink: #f4cf94;
+    --accent-soft: #34281a;
+    --accent-soft-line: #4a3a24;
+    --danger: #e08a70;
+    --danger-soft: #3a251f;
+    --danger-soft-line: #55362c;
+    --code-bg: #1e2128;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent-ink); text-decoration-color: var(--accent-soft-line); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: currentColor; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  code, .mono { font-family: var(--font-mono); }
+
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.88em;
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; color: var(--ink); }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 760px);
+    justify-content: center;
+    gap: 56px;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 20px 96px;
+  }
+
+  /* ---------- sidebar ---------- */
+
+  .toc {
+    position: sticky;
+    top: 32px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: fit-content;
+  }
+
+  .toc .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .toc .brand .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .toc .brand strong {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .toc nav { display: flex; flex-direction: column; gap: 2px; }
+
+  .toc nav a {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 5px 0;
+    border-left: 2px solid transparent;
+    padding-left: 12px;
+    margin-left: -13px;
+  }
+
+  .toc nav a:hover { color: var(--ink); border-left-color: var(--line-strong); }
+
+  .toc .sub { padding-left: 26px !important; font-size: 12.5px; color: var(--ink-faint); }
+  .toc .sub:hover { color: var(--ink-soft); }
+
+  /* ---------- content ---------- */
+
+  main { min-width: 0; }
+
+  header.hero { margin-bottom: 44px; }
+
+  header.hero .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 10px;
+  }
+
+  header.hero h1 {
+    font-size: clamp(34px, 5vw, 46px);
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+  }
+
+  header.hero p.lede {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    font-size: 17px;
+    margin: 0 0 28px;
+  }
+
+  .cmd-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .cmd-block code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 13.5px;
+    color: var(--ink);
+    flex: 1;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .cmd-block code .dim { color: var(--ink-faint); }
+
+  .copy-btn {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    background: var(--bg-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 6px 11px;
+    cursor: pointer;
+  }
+
+  .copy-btn:hover { color: var(--ink); border-color: var(--accent); }
+  .copy-btn[data-copied="true"] { color: var(--accent-ink); border-color: var(--accent-soft-line); background: var(--accent-soft); }
+
+  .packages {
+    margin: 18px 0 0;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+
+  .note {
+    margin-top: 22px;
+    display: flex;
+    gap: 10px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-line);
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-size: 13.5px;
+    color: var(--accent-ink);
+  }
+
+  .note strong { color: inherit; }
+  .note.danger { background: var(--danger-soft); border-color: var(--danger-soft-line); color: var(--danger); }
+
+  section { margin-top: 56px; scroll-margin-top: 28px; }
+  section h2 { font-size: 24px; margin: 0 0 6px; scroll-margin-top: 28px; }
+  section > p.section-lede { margin: 0 0 22px; color: var(--ink-soft); font-size: 14.5px; }
+
+  section#aliases h2, section#functions h2, section#git-aliases h2, section#layout h2, section#bootstrap h2 { scroll-margin-top: 28px; }
+
+  /* tree */
+  pre.tree {
+    margin: 0;
+    padding: 20px 22px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 12.6px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+
+  pre.tree .name { color: var(--ink); font-weight: 500; }
+  pre.tree .comment { color: var(--ink-faint); }
+
+  /* alias groups */
+  .group { margin-top: 30px; }
+  .group:first-of-type { margin-top: 20px; }
+
+  .group h3 {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .group h3 .badge {
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: var(--bg-sunken);
+    border: 1px solid var(--line);
+    padding: 1px 8px;
+    border-radius: 999px;
+  }
+
+  dl.pairs {
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  dl.pairs .entry {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    background: var(--bg-raised);
+    padding: 9px 13px;
+  }
+
+  dl.pairs dt {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-ink);
+  }
+
+  dl.pairs dd {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    overflow-wrap: anywhere;
+  }
+
+  dl.pairs dd.prose { font-family: var(--font-body); }
+
+  /* functions */
+  .fn-list { display: flex; flex-direction: column; }
+
+  .fn-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .fn-row:first-child { border-top: none; padding-top: 0; }
+
+  .fn-row .sig { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .fn-row .sig code { font-size: 13.5px; font-weight: 500; }
+  .fn-row p { margin: 0; color: var(--ink-soft); font-size: 14px; max-width: 64ch; }
+
+  .pill {
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--danger-soft);
+    border: 1px solid var(--danger-soft-line);
+    color: var(--danger);
+  }
+
+  /* git alias table */
+  .kv { margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .kv .row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    background: var(--bg-raised);
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+  }
+  .kv .row + .row { border-top: 1px solid var(--line); }
+  .kv .row .arrow { color: var(--ink-faint); font-size: 12px; }
+  .kv .row code:first-child { color: var(--accent-ink); font-weight: 600; }
+
+  footer.closing {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 900px) {
+    .shell {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+      padding: 24px 16px 72px;
+    }
+
+    .toc {
+      position: static;
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .toc .brand { flex: none; }
+    .toc nav { flex-direction: row; gap: 4px; }
+    .toc nav a { white-space: nowrap; padding: 6px 10px; margin-left: 0; border-left: none; border-radius: 999px; }
+    .toc nav a:hover { background: var(--bg-sunken); }
+    .toc .sub { display: none; }
+  }
+
+  @media (max-width: 480px) {
+    .kv .row { grid-template-columns: 1fr auto 1fr; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="brand">
+      <span class="eyebrow">Windows · personal setup</span>
+      <strong>config</strong>
+    </div>
+    <nav aria-label="Sections">
+      <a href="#bootstrap">Bootstrap</a>
+      <a href="#layout">Layout</a>
+      <a href="#aliases">Aliases</a>
+      <a class="sub" href="#nav-alias">Navigation</a>
+      <a class="sub" href="#gh-alias">github cli</a>
+      <a class="sub" href="#win-alias">Windows system</a>
+      <a href="#functions">Functions</a>
+      <a href="#android-functions">Android functions</a>
+      <a href="#git-aliases">Git aliases</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero" id="bootstrap">
+      <p class="eyebrow">Reference · isafuianish-dev/config_windows</p>
+      <h1>Dotfiles for a fresh Windows machine</h1>
+      <p class="lede">Personal Windows setup: install scripts, shell config, and app settings. One command takes a clean Windows machine to a working PowerShell shell.</p>
+
+      <div class="cmd-block">
+        <code id="bootstrap-cmd">irm <span class="dim">https://raw.githubusercontent.com/isafuianish-dev/config_windows/main/install.ps1</span> | iex</code>
+        <button class="copy-btn" id="copy-btn" type="button">Copy</button>
+      </div>
+
+      <p class="packages">Installs <code>git</code> <code>python</code> <code>node</code> <code>uv</code> <code>jq</code> <code>ripgrep</code> <code>fzf</code> <code>bat</code> <code>eza</code> <code>wget</code> <code>gh</code> via winget, plus <code>vscodium</code> and the Meslo Nerd Font (fetched directly - not published on winget). winget itself ships with Windows 11, and <code>tree</code> ships with Windows already, so neither needs installing.</p>
+
+      <p class="packages"><strong>Optional:</strong> the bootstrap asks whether to install Temurin OpenJDK 21 (<code>other/java.ps1</code>) via winget (<code>EclipseAdoptium.Temurin.21.JDK</code>). Once installed, <code>env.ps1</code> sets <code>JAVA_HOME</code> and adds its <code>bin</code> to <code>PATH</code> automatically. Skipped it? Run <code>.\other\java.ps1</code> later and restart your terminal.</p>
+
+      <p class="packages"><strong>Optional:</strong> the bootstrap also asks whether to set up the Android SDK (<code>other/android.ps1</code>). There's no winget package for the command line tools alone, so this fetches Google's repository manifest to resolve the current Windows cmdline-tools archive into <code>%LOCALAPPDATA%\Android\Sdk</code>, then uses the <code>android</code> CLI (which superseded the now-deprecated <code>sdkmanager</code>/<code>avdmanager</code>) to install <code>platform-tools</code> and a platform/build-tools at API 34, plus a <code>medium_phone</code> AVD. <code>env.ps1</code> sets <code>ANDROID_HOME</code>/<code>ANDROID_SDK_ROOT</code> and <code>PATH</code> automatically, and <code>android.ps1</code> (functions below) is only loaded once the SDK exists. Skipped it? Run <code>.\other\android.ps1</code> later and restart your terminal.</p>
+
+      <p class="packages"><strong>Secrets directory:</strong> <code>env.ps1</code> creates <code>%USERPROFILE%\Developer\secrets</code> if needed and exports it as <code>SECRET_DIR</code> — used by the Android signing functions below, and available for anything else that needs a place to keep local secrets.</p>
+
+      <p class="packages"><strong>GitHub tokens:</strong> the bootstrap opens GitHub's token form (name and permissions pre-filled) once for a read-only token and once for a read/write token, and asks you to paste each one. They're saved in <code>%USERPROFILE%\Developer\secrets\github</code>, and <code>env.ps1</code> exports them as <code>GITHUB_PAT_READ</code> and <code>GITHUB_PAT_READWRITE</code> in every PowerShell session. Skipped one? Run <code>.\other\github_pat.ps1</code> later. To replace a token, delete its file and re-run.</p>
+
+      <p class="packages"><strong>Coming from the old cmd.exe version?</strong> Re-running the bootstrap removes the old <code>cmd.exe</code> AutoRun hook and wires PowerShell instead. The repo now lives in <code>Developer\projects\configuration\config_windows</code>; an older clone in <code>Developer\projects\config_windows</code> is unused and can be deleted.</p>
+
+      <div class="note">
+        <span>💡</span>
+        <span><strong>After bootstrapping</strong>, run <code>gh auth login</code> once — without it, the <code>gh</code>-based aliases and functions below (<code>ghpr</code>, <code>ghrv</code>, <code>gitbornr</code>, …) fail with an auth error.</span>
+      </div>
+    </header>
+
+    <section id="layout">
+      <h2>Layout</h2>
+      <p class="section-lede">Every script is idempotent — safe to re-run after pulling changes.</p>
+      <pre class="tree"><span class="name">.</span>
+├── <span class="name">install.ps1</span>                 <span class="comment"># entry point for a fresh machine</span>
+├── <span class="name">ps_profile/</span>
+│   ├── <span class="name">profile.ps1</span>             <span class="comment"># dot-sourced by your PowerShell profile, loads every module below</span>
+│   └── <span class="name">module/</span>
+│       ├── <span class="name">env.ps1</span>             <span class="comment"># GITHUB_PAT_READ / GITHUB_PAT_READWRITE / SECRET_DIR / JAVA_HOME / ANDROID_HOME</span>
+│       ├── <span class="name">alias.ps1</span>           <span class="comment"># shortcuts, grouped by the command they wrap</span>
+│       ├── <span class="name">function.ps1</span>        <span class="comment"># shell functions</span>
+│       ├── <span class="name">android.ps1</span>         <span class="comment"># Android functions (create_device, create_release_apk, ...), only when the SDK is installed</span>
+│       └── <span class="name">prompt.ps1</span>          <span class="comment"># powerline-style prompt with live git status</span>
+├── <span class="name">git_setup/</span>
+│   ├── <span class="name">git_config.ps1</span>          <span class="comment"># global git identity + settings</span>
+│   ├── <span class="name">git_alias.ps1</span>           <span class="comment"># git born / git kill / git addremote / ... aliases</span>
+│   └── <span class="name">gitignore_global</span>        <span class="comment"># git's core.excludesfile, applies to all repos</span>
+├── <span class="name">app_config/</span>
+│   └── <span class="name">vscodium/settings.json</span> <span class="comment"># copied (or symlinked) into VSCodium's User dir by install.ps1</span>
+└── <span class="name">other/</span>
+    ├── <span class="name">winget.ps1</span>              <span class="comment"># winget + packages</span>
+    ├── <span class="name">java.ps1</span>                <span class="comment"># optional: Temurin OpenJDK 21 (bootstrap asks first)</span>
+    ├── <span class="name">android.ps1</span>             <span class="comment"># optional: Android SDK cmdline-tools + AVD emulator (bootstrap asks first)</span>
+    ├── <span class="name">github_pat.ps1</span>          <span class="comment"># prompts for GitHub tokens, saves them to ~/Developer/secrets/github</span>
+    └── <span class="name">ssh.ps1</span>                 <span class="comment"># SSH key generation (skips if one already exists)</span></pre>
+
+      <div class="note">
+        <span>🛈</span>
+        <span>A PowerShell alias can't carry arguments, so each shortcut in <code>alias.ps1</code> is a small function that passes extra arguments through, and everything is <code>global:</code> so <code>reload</code> works from inside a function. <code>function.ps1</code> is self-contained: the <code>git born</code> / <code>git kill</code> / … aliases run it through <code>powershell -NoProfile</code>. <code>ni</code> is a built-in alias for <code>New-Item</code>; the profile removes it so <code>ni</code> means <code>npm install</code>.</span>
+      </div>
+
+      <div class="note">
+        <span>🛈</span>
+        <span><strong>Differences from macOS.</strong> Everything here has a macOS twin with the same name; what's left is platform-specific. winget replaces Homebrew, so there's no <code>bc</code> alias and no <code>bash</code>/<code>htop</code>/<code>tree</code> package. There are no <code>grep</code>/<code>egrep</code>/<code>fgrep</code> color aliases, <code>py</code>, <code>pip</code>, or <code>-</code> (Windows already has <code>py</code> and <code>pip</code>, and <code>cd -</code> is built into PowerShell 7). The optional <code>openjdk@21</code> install and <code>JAVA_HOME</code> setup are macOS-only for now. System aliases like <code>showfiles</code> and <code>restartdock</code> drive Explorer and the registry instead of Finder and Dock.</span>
+      </div>
+    </section>
+
+    <section id="aliases">
+      <h2>Aliases</h2>
+      <p class="section-lede">Defined in <code>alias.ps1</code> as small functions, grouped by the command they wrap.</p>
+
+      <div class="group" id="nav-alias">
+        <h3>Navigation</h3>
+        <dl class="pairs">
+          <div class="entry"><dt>.. / ... / ....</dt><dd>cd .. / cd ../.. / cd ../../..</dd></div>
+          <div class="entry"><dt>~</dt><dd>cd ~</dd></div>
+        </dl>
+      </div>
+
+      <div class="group">
+        <h3>ls</h3>
+        <dl class="pairs">
+          <div class="entry"><dt>ll</dt><dd>Get-ChildItem -Force</dd></div>
+          <div class="entry"><dt>la</dt><dd>Get-ChildItem -Force</dd></div>
+          <div class="entry"><dt>l</dt><dd class="prose">Get-ChildItem in columns</dd></div>
+          <div class="entry"><dt>lt</dt><dd class="prose">Get-ChildItem -Force, newest first</dd></div>
+        </dl>
+      </div>
+
+      <div class="group" id="gh-alias">
+        <h3>github cli <span class="badge">needs gh auth login</span></h3>
+        <dl class="pairs">
+          <div class="entry"><dt>ghpr</dt><dd>gh pr create</dd></div>
+          <div class="entry"><dt>ghrv</dt><dd>gh repo view --web</dd></div>
+          <div class="entry"><dt>ghprl</dt><dd>gh pr list</dd></div>
+          <div class="entry"><dt>ghrl</dt><dd>gh repo list</dd></div>
+          <div class="entry"><dt>ghprv</dt><dd>gh pr view --web</dd></div>
+          <div class="entry"><dt>ghrc</dt><dd>gh repo clone</dd></div>
+          <div class="entry"><dt>ghprco</dt><dd>gh pr checkout</dd></div>
+          <div class="entry"><dt>ghrn</dt><dd>gh repo create</dd></div>
+          <div class="entry"><dt>ghi</dt><dd>gh issue create</dd></div>
+          <div class="entry"><dt>ghrd</dt><dd>gh repo delete</dd></div>
+          <div class="entry"><dt>ghil</dt><dd>gh issue list</dd></div>
+          <div class="entry"><dt>ghb</dt><dd>gh browse</dd></div>
+        </dl>
+      </div>
+
+      <div class="group">
+        <h3>winget</h3>
+        <dl class="pairs">
+          <div class="entry"><dt>bi</dt><dd>winget install</dd></div>
+          <div class="entry"><dt>bu</dt><dd>winget source update; winget upgrade --all</dd></div>
+          <div class="entry"><dt>bl</dt><dd>winget list</dd></div>
+        </dl>
+      </div>
+
+      <div class="group">
+        <h3>npm / node</h3>
+        <dl class="pairs">
+          <div class="entry"><dt>ni</dt><dd>npm install</dd></div>
+          <div class="entry"><dt>ns</dt><dd>npm start</dd></div>
+          <div class="entry"><dt>nr</dt><dd>npm run</dd></div>
+          <div class="entry"><dt>nt</dt><dd>npm test</dd></div>
+        </dl>
+      </div>
+
+      <div class="group">
+        <h3>python</h3>
+        <dl class="pairs">
+          <div class="entry"><dt>venv</dt><dd>python -m venv .venv</dd></div>
+          <div class="entry"><dt>activate</dt><dd>. ./.venv/Scripts/Activate.ps1</dd></div>
+        </dl>
+      </div>
+
+      <div class="group" id="win-alias">
+        <h3>Windows system</h3>
+        <dl class="pairs">
+          <div class="entry"><dt>cpwd</dt><dd class="prose">Copy the current directory path to the clipboard</dd></div>
+          <div class="entry"><dt>showfiles / hidefiles</dt><dd class="prose">Show/hide hidden files in Explorer</dd></div>
+          <div class="entry"><dt>hidedesktop / showdesktop</dt><dd class="prose">Hide/show desktop icons</dd></div>
+          <div class="entry"><dt>flushdns</dt><dd class="prose">Flush the DNS cache</dd></div>
+          <div class="entry"><dt>lock</dt><dd class="prose">Lock the workstation</dd></div>
+          <div class="entry"><dt>sleepnow</dt><dd class="prose">Sleep the whole machine now</dd></div>
+          <div class="entry"><dt>emptytrash</dt><dd class="prose">Empty the Recycle Bin</dd></div>
+          <div class="entry"><dt>restartfinder / restartdock</dt><dd class="prose">Restart Explorer (taskbar + file explorer live in one process on Windows)</dd></div>
+          <div class="entry"><dt>spotlightoff / spotlighton</dt><dd class="prose">Stop/start the Windows Search indexer (needs an elevated prompt)</dd></div>
+          <div class="entry"><dt>screenshotdir</dt><dd class="prose">Print the default Windows screenshot save location</dd></div>
+        </dl>
+      </div>
+
+      <div class="group">
+        <h3>misc</h3>
+        <dl class="pairs">
+          <div class="entry"><dt>reload</dt><dd class="prose">Re-run ps_profile\profile.ps1 in this shell</dd></div>
+          <div class="entry"><dt>h</dt><dd>Get-History (built into PowerShell)</dd></div>
+          <div class="entry"><dt>c</dt><dd>Clear-Host</dd></div>
+          <div class="entry"><dt>path</dt><dd class="prose">Print PATH, one entry per line</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="functions">
+      <h2>Functions</h2>
+      <p class="section-lede">Defined in <code>function.ps1</code>. Same set, usage, and messages as macOS.</p>
+
+      <div class="fn-list">
+        <div class="fn-row">
+          <div class="sig"><code>mkcd &lt;dir&gt;</code></div>
+          <p>Create the directory (and parents), then <code>cd</code> into it.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>up [n]</code></div>
+          <p><code>cd</code> up <code>n</code> directories, default 1.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>extract &lt;file&gt;</code></div>
+          <p>Extract almost any archive type based on its extension (<code>.zip</code>/<code>.tar*</code> via Windows' built-in <code>tar</code>; <code>.gz</code> natively; <code>.7z</code>/<code>.rar</code>/<code>.bz2</code> via <code>7z</code>/<code>unrar</code> if installed).</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>backup &lt;path&gt;</code></div>
+          <p>Copy a file/dir alongside itself with a timestamp suffix.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>port &lt;n&gt;</code></div>
+          <p>Show what's listening on TCP port <code>n</code>.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>killport &lt;n&gt;</code></div>
+          <p>Kill whatever's listening on TCP port <code>n</code>.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>serve [port]</code></div>
+          <p>Serve the current directory over HTTP, default 8000.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>pj [file]</code></div>
+          <p>Pretty-print JSON from a file or stdin.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>myip</code></div>
+          <p>Print this machine's public IP address.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>git-clean-branches</code></div>
+          <p>Delete local branches already merged into the current one (never <code>main</code>/<code>master</code>).</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>note ["text"]</code></div>
+          <p>Append a timestamped line to <code>%USERPROFILE%\notes.md</code>, or print it with no args.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>caffeinate</code></div>
+          <p>Keep this machine and its display awake until you Ctrl+C.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitborn</code></div>
+          <p>For a plain, non-git directory: <code>git init</code>s and makes a first commit. No remote. Refuses if already inside a git repo.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitbornr</code></div>
+          <p>For a plain, non-git directory: asks private/public, then <code>git init</code>s, commits, creates a GitHub repo named after the folder, and pushes. If public, also asks whether to enable GitHub Pages for it. Refuses if already inside a git repo.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitaddremote</code></div>
+          <p>For a repo with no remote yet: asks private/public, creates a GitHub repo named after the root folder, and pushes. If public, also asks whether to enable GitHub Pages for it. Refuses if <code>origin</code> already exists.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitremoveremote</code> <span class="pill">Destructive</span></div>
+          <p>Deletes the linked GitHub repo and removes the local <code>origin</code> remote. Refuses if there's no local repo or no remote.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitenablepage</code></div>
+          <p>Enables GitHub Pages for the current repo, serving from the current branch's root. Refuses if there's no local repo, no remote, the repo is private, or Pages is already enabled.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitdisablepage</code></div>
+          <p>Disables GitHub Pages for the current repo. Refuses if there's no local repo, no remote, or Pages isn't enabled.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitkill</code> <span class="pill">Destructive</span></div>
+          <p>Deletes the GitHub repo, if one's linked, and wipes local git history. Asks for <code>yes</code> first.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitcomparelocal</code></div>
+          <p>Clones <code>main</code> fresh from the GitHub repo named after the current folder into a temp folder and compares it with the local folder, printing an <code>[A]</code>/<code>[D]</code>/<code>[M]</code> report of added/deleted/changed files. Works even if the local folder isn't a git repo.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>gitoverridelocal</code> <span class="pill">Destructive</span></div>
+          <p>Deletes everything in the current folder, including <code>.git</code>, and replaces it with a fresh clone of the GitHub repo named after the folder. Refuses if no such repo exists. Asks for <code>yes</code> first.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="android-functions">
+      <h2>Android functions</h2>
+      <p class="section-lede">Defined in <code>android.ps1</code>, only loaded when the Android SDK is installed. Ported from macOS's <code>android.sh</code> so both platforms have the same commands, prompts, and messages. They wrap the <code>android</code> CLI, <code>adb</code>, and Gradle. <code>create_signing_key</code>, <code>create_release_apk</code>, and <code>run_release_apk</code> expect a standard Gradle project with an <code>:app</code> module and a release <code>signingConfig</code> that reads <code>KEYSTORE_PATH</code>/<code>KEYSTORE_PASSWORD</code>/<code>KEY_ALIAS</code>/<code>KEY_PASSWORD</code> from the environment. One platform difference: signing credentials are read from a dot-sourced <code>credentials.ps1</code> (<code>$env:KEYSTORE_PATH = '...'</code> lines), not macOS's bash-style <code>credentials.env</code>, since PowerShell has no <code>source</code> for <code>.env</code> files. Run <code>android_help</code> for a colorized cheat sheet of everything below, printed straight to the terminal.</p>
+
+      <div class="fn-list">
+        <div class="fn-row">
+          <div class="sig"><code>android_help</code></div>
+          <p>Print every function below with a one-line description, colorized, plus a few things worth remembering.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>list_device</code></div>
+          <p>List every AVD with its current status (running/stopped).</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>start_device</code></div>
+          <p>Ask which stopped AVD to start, launch it in the background, and wait (up to 2 minutes) for adb to see it.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>stop_device</code></div>
+          <p>Ask which running AVD to stop, then stop it (<code>android emulator stop</code>).</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>create_device</code></div>
+          <p>Create a new AVD, asking which device profile to use (<code>android emulator create</code>).</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>delete_device</code> <span class="pill">Destructive</span></div>
+          <p>Ask which AVD to delete, confirm with <code>yes</code>, then delete it.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>clone_device</code></div>
+          <p>Ask which AVD to clone and its new name, then duplicate its files (there's no native <code>android emulator clone</code>). Refuses if the source AVD is currently running.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>wipe_device</code></div>
+          <p>Ask which AVD to wipe, then clear its user data for a fresh start without deleting the device. Refuses if it's currently running.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>create_signing_key</code></div>
+          <p>Run from a project root: generates a release signing key and <code>$env:SECRET_DIR\&lt;project dir name&gt;\credentials.ps1</code>. Refuses if a key already exists there.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>create_debug_apk</code></div>
+          <p>Run from a project root: <code>.\gradlew.bat assembleDebug</code>, then prints the built APK's path.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>create_release_apk [versionName] [versionCode]</code></div>
+          <p>Run from a project root: dot-sources <code>$env:SECRET_DIR\&lt;project dir name&gt;\credentials.ps1</code>, builds <code>:app:assembleRelease</code>, verifies with <code>apksigner</code> that it's not debug-signed, and copies it to <code>dist\&lt;name&gt;_v&lt;version&gt;.apk</code> (older versions there are left alone). Refuses if <code>create_signing_key</code> hasn't been run yet.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>run_debug_apk</code></div>
+          <p>Installs and launches the most recently built debug APK on a running device/emulator. Refuses if none are running; asks which one if several are.</p>
+        </div>
+        <div class="fn-row">
+          <div class="sig"><code>run_release_apk</code></div>
+          <p>Same as <code>run_debug_apk</code>, but with the most recently built release APK from <code>dist\</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="git-aliases">
+      <h2>Git aliases</h2>
+      <p class="section-lede">Set up by <code>git_alias.ps1</code> during bootstrap.</p>
+
+      <div class="group">
+        <h3>run the functions above through PowerShell</h3>
+        <div class="kv">
+          <div class="row"><code>git born</code><span class="arrow">→</span><code>gitborn</code></div>
+          <div class="row"><code>git bornr</code><span class="arrow">→</span><code>gitbornr</code></div>
+          <div class="row"><code>git addremote</code><span class="arrow">→</span><code>gitaddremote</code></div>
+          <div class="row"><code>git removeremote</code><span class="arrow">→</span><code>gitremoveremote</code></div>
+          <div class="row"><code>git enablepage</code><span class="arrow">→</span><code>gitenablepage</code></div>
+          <div class="row"><code>git disablepage</code><span class="arrow">→</span><code>gitdisablepage</code></div>
+          <div class="row"><code>git kill</code><span class="arrow">→</span><code>gitkill</code></div>
+          <div class="row"><code>git comparelocal</code><span class="arrow">→</span><code>gitcomparelocal</code></div>
+          <div class="row"><code>git overridelocal</code><span class="arrow">→</span><code>gitoverridelocal</code></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>plain command shortcuts</h3>
+        <div class="fn-list">
+          <div class="fn-row">
+            <div class="sig"><code>git unstage</code></div>
+            <p>Runs <code>git reset HEAD --</code>. Unstage a file without losing its changes.</p>
+          </div>
+          <div class="fn-row">
+            <div class="sig"><code>git last</code></div>
+            <p>Runs <code>git log -1 HEAD</code>. Show the last commit.</p>
+          </div>
+          <div class="fn-row">
+            <div class="sig"><code>git amend</code></div>
+            <p>Runs <code>git commit --amend --no-edit</code>. Amend the last commit without changing its message.</p>
+          </div>
+          <div class="fn-row">
+            <div class="sig"><code>git undo</code></div>
+            <p>Runs <code>git reset --soft HEAD~1</code>. Undo the last commit, keeping its changes staged.</p>
+          </div>
+          <div class="fn-row">
+            <div class="sig"><code>git graph</code></div>
+            <p>Runs <code>git log --oneline --graph --decorate --all</code>. Compact graph log of every branch.</p>
+          </div>
+          <div class="fn-row">
+            <div class="sig"><code>git contributors</code></div>
+            <p>Runs <code>git shortlog -sn</code>. List contributors ranked by commit count.</p>
+          </div>
+          <div class="fn-row">
+            <div class="sig"><code>git aliases</code></div>
+            <p>Runs <code>git config --get-regexp ^alias\.</code>. List every configured git alias.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>short-command equivalents of the old shell aliases</h3>
+        <div class="kv">
+          <div class="row"><code>git s</code><span class="arrow">→</span><code>git status</code></div>
+          <div class="row"><code>git a</code><span class="arrow">→</span><code>git add</code></div>
+          <div class="row"><code>git aa</code><span class="arrow">→</span><code>git add -A</code></div>
+          <div class="row"><code>git c</code><span class="arrow">→</span><code>git commit</code></div>
+          <div class="row"><code>git cm</code><span class="arrow">→</span><code>git commit -m</code></div>
+          <div class="row"><code>git co</code><span class="arrow">→</span><code>git checkout</code></div>
+          <div class="row"><code>git b</code><span class="arrow">→</span><code>git branch</code></div>
+          <div class="row"><code>git p</code><span class="arrow">→</span><code>git push</code></div>
+          <div class="row"><code>git pl</code><span class="arrow">→</span><code>git pull</code></div>
+          <div class="row"><code>git l</code><span class="arrow">→</span><code>git log --oneline --graph --decorate</code></div>
+          <div class="row"><code>git la</code><span class="arrow">→</span><code>git log --oneline --graph --decorate --all</code></div>
+          <div class="row"><code>git d</code><span class="arrow">→</span><code>git diff</code></div>
+          <div class="row"><code>git ds</code><span class="arrow">→</span><code>git diff --staged</code></div>
+          <div class="row"><code>git st</code><span class="arrow">→</span><code>git stash</code></div>
+          <div class="row"><span><code style="color:var(--accent-ink);font-weight:600">git rh</code> <span class="pill">Destructive</span></span><span class="arrow">→</span><code>git reset --hard</code></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="closing">
+      Every script in this repo is idempotent — safe to re-run after pulling changes.
+    </footer>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('copy-btn');
+    var cmd = 'irm https://raw.githubusercontent.com/isafuianish-dev/config_windows/main/install.ps1 | iex';
+
+    btn.addEventListener('click', function () {
+      function done() {
+        btn.textContent = 'Copied';
+        btn.dataset.copied = 'true';
+        setTimeout(function () {
+          btn.textContent = 'Copy';
+          btn.dataset.copied = 'false';
+        }, 1500);
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cmd).then(done).catch(function () { fallbackCopy(cmd, done); });
+      } else {
+        fallbackCopy(cmd, done);
+      }
+    });
+
+    function fallbackCopy(text, cb) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        cb();
+      } catch (e) {
+        /* clipboard unavailable, ignore */
+      }
+    }
+  })();
+</script>
+</body>
+</html>

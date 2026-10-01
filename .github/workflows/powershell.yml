@@ -1,0 +1,30 @@
+name: powershell
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  parse:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      # `shell: powershell` is Windows PowerShell 5.1, the oldest PowerShell these scripts support, so 7-only syntax fails here.
+      # Non-ASCII is rejected too: 5.1 reads a BOM-less .ps1 as ANSI, which silently garbles UTF-8 characters.
+      - name: Parse every script and require ASCII
+        shell: powershell
+        run: |
+          $failed = $false
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+              $errors = $null
+              [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errors)
+              foreach ($e in $errors) {
+                  $failed = $true
+                  Write-Host "$($_.FullName):$($e.Extent.StartLineNumber): $($e.Message)"
+              }
+              if ([System.IO.File]::ReadAllBytes($_.FullName) | Where-Object { $_ -gt 127 } | Select-Object -First 1) {
+                  $failed = $true
+                  Write-Host "$($_.FullName): contains non-ASCII characters"
+              }
+          }
+          if ($failed) { exit 1 }
